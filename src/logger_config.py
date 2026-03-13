@@ -2,13 +2,13 @@ import logging, sys
 from datetime import datetime
 
 
-def setup_logfing(level=logging.INFO):
+def setup_loging(level=logging.INFO):
     '''
     функция настройки логов.
     Создает файл логово и выводит его название (между запусками
     файл отличается)
     Изменяет отобажения логов
-    :param level: уроввень логирования
+    :param level: уровень логирования
     '''
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',

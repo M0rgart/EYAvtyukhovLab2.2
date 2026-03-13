@@ -1,9 +1,11 @@
-import time, logging
-from datetime import datetime
-from typing import Optional, Any, Callable
-import exceptions
-from models.exceptions import InvalidIDError, InvalidPriorityError, InvalidStatusError
-from src.contracts import TaskSource
+import time
+from typing import Any, Optional
+import logging
+from .exceptions import (
+    InvalidPriorityError,
+    InvalidStatusError,
+    InvalidDescriptionError
+)
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +16,7 @@ class ValidatedString:
     """
 
     def __init__(self, min_len: int = 1, max_len: int = 255, nullable: bool = False,
-                 error_class: Exception = exceptions.InvalidDescriptionError):
+                 error_class: Exception = InvalidDescriptionError):
         self.min_len = min_len
         self.max_len = max_len
         self.nullable = nullable
@@ -59,7 +61,7 @@ class ValidatedString:
 class PositiveInteger:
     """Data descriptor для положительных чисел"""
     def __init__(self, min_value: int = 0, max_value: int = 100,
-                 error_class: Exception = exceptions.InvalidPriorityError):
+                 error_class: Exception = InvalidPriorityError):
         self.min_value = min_value
         self.max_value = max_value
         self.error_class = error_class

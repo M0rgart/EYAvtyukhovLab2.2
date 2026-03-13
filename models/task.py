@@ -2,7 +2,7 @@ import logging
 from models.descriptors import ValidatedString, PriorityDescriptor, TimestampDescriptor, StatusDescriptor, \
     DataDescriptor
 from models.exceptions import InvalidIDError, InvalidStatusError
-from typing import Any, Optional, Dict
+from typing import Any, Dict
 import datetime, time
 
 
