@@ -2,6 +2,7 @@ import time, logging
 from datetime import datetime
 from typing import Optional, Any, Callable
 import exceptions
+from models.exceptions import InvalidIDError, InvalidPriorityError, InvalidStatusError
 from src.contracts import TaskSource
 
 logger = logging.getLogger(__name__)
@@ -83,4 +84,101 @@ class PositiveInteger:
         logger.debug(f"Установленно значение {int_value} для {self}")
 
     def __delete__(self, obj):
-        raise AttributeError(f"Нельзя удалить артибут {self}")
+        raise AttributeError(f"Нельзя удалить атрибут {self}")
+
+
+class PriorityDescriptor(PositiveInteger):
+    """Спец. дескриптор для приоритета (с переопределением уровней)"""
+    LVL = {
+        1: "Low",
+        2: "Medium",
+        3: "High",
+        4: "Critical"
+    }
+
+    def __init__(self):
+        super().__init__(min_value=1, max_value=4, error_class=InvalidPriorityError)
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        value = super().__get__(obj, objtype)
+        return {
+            'value': value,
+            'name': self.LVL.get(value, 'Unknown')
+        }
+
+
+class StatusDescriptor:
+    """Non-data descriptor для статуса задачи"""
+    STATUSES = ['pending', 'running', 'completed', 'canceled']
+    TRANSITIONS = {
+        'pending': ['running', 'canceled'],
+        'running': ['completed', 'canceled'],
+        'completed': [],
+        'canceled': []
+    }
+
+    def __init__(self, default: str = 'pending'):
+        self.default = default
+        self.data = {}
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        return self.data.get(id(obj), self.default)
+
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def transition(self, old: str, new: str):
+        if new not in self.STATUSES:
+            raise InvalidStatusError(f'Неверный статус {new}. Допустимые: {self.STATUSES}')
+
+        if old not in self.TRANSITIONS:
+            return
+
+        if new not in self.TRANSITIONS[old] and old != new:
+            raise InvalidStatusError(f'Недопустимый переход статуса: {old} -> {new}')
+
+
+class TimestampDescriptor:
+    """Data descriptor для временных меток"""
+    def __init__(self, auto: bool = True):
+        self.auto = auto
+        self.data = {}
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        if obj not in self.data and self.auto:
+            self.__set__(obj, None)
+        return self.data.get(id(obj))
+
+    def __set__(self, obj, value: Optional[float]):
+        if value is None and self.auto:
+            value = time.time()
+
+        if value is not None and not isinstance(value, (int, float)):
+            raise TypeError(f'Временная метка должна быть числом, получено: {type(value).__name__}')
+
+        self.data[id(obj)] = value
+        logger.debug(f"Установленна временная метка {value}")
+
+    def __delete__(self, obj):
+        if self.auto:
+            raise AttributeError('Нельзя удалить временную метку')
+        del self.data[id(obj)]
+
+
+class DataDescriptor:
+    """Non-data descriptor для доступа в payload"""
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+
+        logger.debug(f"DataDescriptor.__get__ вызван для {obj}")
+        return getattr(obj, '_payload', {})
+
+    def __set_name__(self, owner, name):
+        self.name = name
