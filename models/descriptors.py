@@ -53,3 +53,34 @@ class ValidatedString:
 
     def __repr__(self):
         return f"ValidatedString(min={self.min_len}, max={self.max_len})"
+
+
+class PositiveInteger:
+    """Data descriptor для положительных чисел"""
+    def __init__(self, min_value: int = 0, max_value: int = 100,
+                 error_class: Exception = exceptions.InvalidPriorityError):
+        self.min_value = min_value
+        self.max_value = max_value
+        self.error_class = error_class
+        self.data = {}
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        return self.data.get(id(obj), self.min_value)
+
+    def __set__(self, obj, value: Any):
+        if not isinstance(value, (int, float)):
+            raise self.error_class(f'Значение должно быть числом, получен {type(value).__name__}')
+
+        int_value = int(value)
+        if int_value < self.min_value:
+            raise self.error_class(f"Значение меньше минимального {self.min_value}")
+        if int_value > self.max_value:
+            raise self.error_class(f"Значение больше максимального {self.max_value}")
+
+        self.data[id(obj)] = int_value
+        logger.debug(f"Установленно значение {int_value} для {self}")
+
+    def __delete__(self, obj):
+        raise AttributeError(f"Нельзя удалить артибут {self}")
