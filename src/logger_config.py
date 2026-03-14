@@ -2,7 +2,7 @@ import logging, sys
 from datetime import datetime
 
 
-def setup_loging(level=logging.INFO):
+def setup_logging(level=logging.INFO):
     '''
     функция настройки логов.
     Создает файл логово и выводит его название (между запусками

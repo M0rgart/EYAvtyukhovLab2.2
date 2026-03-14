@@ -5,7 +5,7 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.logger_config import setup_loging
+from src.logger_config import setup_logging
 from src.sources import FileTaskSource, GeneratorTaskSource, APITaskSource
 from src.processor import TaskProcessor
 from src.contracts import check_task_source
@@ -13,7 +13,7 @@ from models.task import Task
 from models.exceptions import InvalidStatusError, InvalidIDError
 
 
-def create_sample_file():
+def create_file():
     """Создает пример JSON файла с задачами"""
     import json
 
@@ -179,9 +179,9 @@ def demonstrate_integration():
 
 def main():
     """Главная функция"""
-    setup_loging(logging.INFO)
+    setup_logging(logging.INFO)
 
-    create_sample_file()
+    create_file()
     lab1_tasks = demonstrate_lab1_sources()
     lab2_task = demonstrate_lab2_model()
     demonstrate_integration()
